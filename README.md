@@ -53,8 +53,9 @@ code-review-agent/
 ## Setup
 
 ```bash
-git clone [your-repo-url]
-cd code-review-agent
+
+git clone https://github.com/Kailashsharrma/ai-code-review-agent.git
+cd ai-code-review-agent
 python -m venv venv
 venv\Scripts\activate
 python -m pip install -r requirements.txt
