@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CodeReview Agent</title>
+<script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme=light]{--bg:#f4f6f8;--card:#fff;--line:#e3e8ee;--text:#0f1b2d;--mut:#556070;--acc:#0f766e;--act:#fff;--accbg:#e3f4f1;--bad:#b42318;--badbg:#fdecea;--warn:#8a5300;--warnbg:#fdf2d6;--ok:#166534;--okbg:#e1f5e6;--code:#f8fafc;--sh:0 1px 2px rgba(15,27,45,.06),0 4px 16px rgba(15,27,45,.04)}
+[data-theme=dark]{--bg:#0b1118;--card:#131b26;--line:#243142;--text:#e8eef5;--mut:#9aa9ba;--acc:#2dd4bf;--act:#04201d;--accbg:#0f2f2c;--bad:#ff8a80;--badbg:#3a1d21;--warn:#f2c36b;--warnbg:#3a2e14;--ok:#86efac;--okbg:#10291a;--code:#0f1620;--sh:none}
+*{box-sizing:border-box}
+html{color-scheme:light}[data-theme=dark]{color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.top{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line)}
+.in{max-width:1200px;margin:0 auto;padding:0 24px}
+.top .in{display:flex;align-items:center;gap:12px;height:60px}
+.mark{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;background:var(--acc);color:var(--act);font:700 13px "JetBrains Mono",monospace}
+.top b{font-size:17px}.sp{flex:1}
+.badge{font-size:12px;font-weight:600;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 20px;border:1px solid var(--line);border-radius:10px;background:var(--card);font-weight:600;cursor:pointer}
+.btn:hover{border-color:var(--acc)}
+.btn.p{background:var(--acc);border-color:var(--acc);color:var(--act)}
+.btn.g{height:36px;padding:0 12px;font-size:13px;color:var(--mut)}
+.btn:disabled{opacity:.7;cursor:wait}
+.spin{width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:r .7s linear infinite}
+@keyframes r{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation-duration:2s}}
+.hero{padding:44px 0 24px}
+h1{margin:0 0 10px;font-size:38px;line-height:1.15;letter-spacing:-.02em}
+.hero p{margin:0;color:var(--mut);font-size:17px;max-width:640px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);margin-bottom:16px}
+.edh,.edf{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px}
+.edh{border-bottom:1px solid var(--line)}.edf{border-top:1px solid var(--line);gap:12px}
+.edh .lab{font-weight:600;font-size:14px}.cnt{font-size:13px;color:var(--mut)}
+textarea{display:block;width:100%;height:260px;border:0;padding:16px;background:var(--code);font:13.5px/1.6 "JetBrains Mono",ui-monospace,Consolas,monospace;resize:vertical}
+textarea.drag{outline:2px dashed var(--acc);outline-offset:-6px}
+textarea:focus{outline:2px solid var(--acc);outline-offset:-2px}
+.sw{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut)}.sw input{accent-color:var(--acc);width:18px;height:18px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:24px 0 40px}
+.step{padding:20px}.step i{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accbg);color:var(--acc);font:700 13px Inter;font-style:normal;margin-bottom:10px}
+.step b{display:block;margin-bottom:4px}.step span{color:var(--mut);font-size:14px}
+.err{background:var(--badbg);color:var(--bad);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-weight:500}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:16px}
+.stat{padding:16px 20px;margin:0}.stat span{color:var(--mut);font-size:13px;font-weight:500}.stat b{display:block;font-size:30px;line-height:1.2}
+.meter{padding:16px 20px}.meter div{display:flex;justify-content:space-between;font-size:14px}
+.track{height:8px;background:var(--line);border-radius:4px;margin:6px 0 12px}.track i{display:block;height:8px;border-radius:4px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;align-items:start}
+@media(max-width:900px){.cols{grid-template-columns:1fr}}
+.ch{padding:14px 16px;border-bottom:1px solid var(--line);font-weight:600;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.code{position:relative;font:13px/24px "JetBrains Mono",ui-monospace,Consolas,monospace;max-height:520px;overflow:auto;background:var(--code);border-radius:0 0 14px 14px;padding:8px 0}
+.ln{display:flex;white-space:pre;padding:0 14px;border-left:3px solid transparent}
+.ln i{flex:0 0 40px;color:var(--mut);font-style:normal;user-select:none}
+.ln.hl{background:var(--badbg);border-left-color:var(--bad)}.ln.focus{background:var(--warnbg);border-left-color:var(--warn)}
+.chips{display:flex;gap:6px;margin-left:auto}
+.chip{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:13px;font-weight:600;color:var(--mut);cursor:pointer}
+.chip.on{background:var(--acc);border-color:var(--acc);color:var(--act)}
+.iss{border-bottom:1px solid var(--line)}.iss:last-child{border-bottom:0}
+.ih{display:flex;align-items:center;gap:10px;width:100%;padding:12px 16px;border:0;background:none;text-align:left;cursor:pointer}
+.ih:hover{background:var(--bg)}.it{flex:1;font-weight:600}.lb{color:var(--mut);font-size:13px;white-space:nowrap}
+.pill{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--warnbg);color:var(--warn)}
+.pill.high{background:var(--badbg);color:var(--bad)}.pill.low{background:var(--accbg);color:var(--acc)}
+.tag{font-size:12px;color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+.chev{width:8px;height:8px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(-45deg);transition:transform .15s}
+[aria-expanded=true] .chev{transform:rotate(45deg)}
+.ib{padding:0 16px 16px}.ib p{margin:0 0 10px;color:var(--mut)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:1100px){.two{grid-template-columns:1fr}}
+.two .lab{font-size:12px;font-weight:700;color:var(--mut);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+pre{margin:0;padding:8px 12px;border-radius:8px;font:13px/1.6 "JetBrains Mono",ui-monospace,Consolas,monospace;overflow-x:auto}
+pre.w{background:var(--badbg);color:var(--bad)}pre.c{background:var(--okbg);color:var(--ok)}
+.cp{border:0;background:none;color:var(--acc);font-size:12px;font-weight:700;cursor:pointer;padding:2px 4px}
+.fx{padding:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}.fo{padding:0 16px 16px}
+.empty{padding:24px 16px;color:var(--mut)}
+details.card summary{padding:14px 16px;font-weight:600;cursor:pointer}
+.tw{overflow-x:auto;padding:0 16px 16px}table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 8px;border-top:1px solid var(--line)}th{color:var(--mut);font-size:12px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}[hidden]{display:none!important}
+.two>div{min-width:0}.ib{min-width:0}pre{max-width:100%}
+</style>
+</head>
+<body>
+<header class="top"><div class="in"><span class="mark">&lt;/&gt;</span><b>CodeReview Agent</b><span class="badge">Python</span><span class="sp"></span><button class="btn g" id="theme" aria-label="Toggle theme">Dark mode</button></div></header>
+<main class="in">
+<section class="hero"><h1>Find bugs before they ship.</h1><p>Static analysis catches known patterns. AI review catches logic bugs and writes the fix. Paste Python code to start.</p></section>
+<section class="card">
+<div class="edh"><span class="lab">Code</span><span class="cnt" id="cnt">0 lines</span><span class="sp"></span>
+<button class="btn g" data-s="sec">Sample: security bugs</button><button class="btn g" data-s="logic">Sample: logic bugs</button><button class="btn g" id="clear">Clear</button></div>
+<textarea id="code" spellcheck="false" aria-label="Python code" placeholder="Paste Python code here, or drop a .py file onto this box"></textarea>
+<div class="edf"><button class="btn p" id="go">Analyze code</button><label class="btn">Upload .py file<input id="file" type="file" accept=".py" hidden></label><span class="sp"></span><label class="sw"><input type="checkbox" id="llm" checked>AI review (Gemini)</label></div>
+</section>
+<div id="err" class="err" hidden></div>
+<section class="steps" id="how">
+<div class="card step"><i>1</i><b>Static analysis</b><span>pylint and bandit scan for known bug and security patterns in under a second.</span></div>
+<div class="card step"><i>2</i><b>AI review</b><span>Gemini reads the code with the static findings and reports logic bugs the tools miss.</span></div>
+<div class="card step"><i>3</i><b>Fix suggestions</b><span>Each issue shows the wrong line next to the correct one, plus a fully corrected file.</span></div>
+</section>
+<div id="out" hidden>
+<div class="stats" id="stats"></div>
+<section class="card meter" id="bars"></section>
+<div class="cols">
+<section class="card"><div class="ch">Your code <span class="cnt">wrong lines highlighted</span></div><div class="code" id="view"></div></section>
+<section class="card"><div class="ch">AI review<div class="chips" id="chips"></div></div><div id="issues"></div></section>
+</div>
+<section class="card"><div class="fx"><button class="btn p" id="fix">Generate fully corrected code</button><button class="btn" id="dl">Download report (JSON)</button><span class="cnt">Always review generated code before using it.</span></div>
+<div class="fo" id="fixed" hidden><pre class="c" id="fixedcode"></pre><div class="fx" style="padding:12px 0 0"><button class="btn" id="cpfix">Copy code</button><button class="btn" id="dlfix">Download .py</button></div></div></section>
+<details class="card"><summary id="ssum">Static analysis</summary><div class="tw" id="static"></div></details>
+</div>
+</main>
+<div id="toast" role="status"></div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ORDER={high:0,medium:1,low:2};
+const SAMPLES={
+sec:`import os
+import pickle
+
+def get_user(name):
+    query = "SELECT * FROM users WHERE name = '" + name + "'"
+    return query
+
+def load(data):
+    return pickle.loads(data)
+
+password = "admin123"
+x = 10 / 0
+`,
+logic:`def calculate_average(numbers):
+    if not numbers:
+        return 0
+    return sum(numbers) / (len(numbers) + 1)
+
+def calculate_discount(price, discount_percent):
+    discount = price * (discount_percent / 10)
+    return price - discount
+
+def safe_divide(a, b):
+    if b == 0:
+        return None
+    return b / a
+`};
+let S={code:"",static:[],llm:[],fixed:null,t:{},filter:"all"};
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove("on"),1600)}
+async function copy(x){try{await navigator.clipboard.writeText(x);toast("Copied")}catch(e){toast("Copy failed")}}
+function save(name,text,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href)}
+function showErr(m){$("err").hidden=!m;$("err").textContent=m||""}
+function count(){const v=$("code").value,n=v?v.split("\n").length:0;$("cnt").textContent=n+(n===1?" line":" lines")}
+async function post(url,body){const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok)throw new Error("Server error "+r.status);return r.json()}
+function setCode(v){$("code").value=v;count()}
+$("code").oninput=count;
+$("file").onchange=async e=>{const f=e.target.files[0];if(f)setCode(await f.text())};
+const ta=$("code");
+ta.ondragover=e=>{e.preventDefault();ta.classList.add("drag")};
+ta.ondragleave=()=>ta.classList.remove("drag");
+ta.ondrop=async e=>{e.preventDefault();ta.classList.remove("drag");const f=e.dataTransfer.files[0];if(f)setCode(await f.text())};
+document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>setCode(SAMPLES[b.dataset.s]));
+$("clear").onclick=()=>{setCode("");$("out").hidden=true;$("how").hidden=false;showErr("")};
+const themeBtn=$("theme");
+function themeLabel(){themeBtn.textContent=document.documentElement.dataset.theme==="dark"?"Light mode":"Dark mode"}
+themeBtn.onclick=()=>{const d=document.documentElement,n=d.dataset.theme==="dark"?"light":"dark";d.dataset.theme=n;try{localStorage.setItem("theme",n)}catch(e){}themeLabel()};
+themeLabel();
+$("go").onclick=async()=>{
+  const code=$("code").value;if(!code.trim()){showErr("Please paste or upload some code first.");return}
+  showErr("");const b=$("go");b.disabled=true;b.innerHTML='<span class="spin"></span>Analyzing';
+  try{
+    const d=await post("/api/analyze",{code,use_llm:$("llm").checked});
+    S={code,static:d.static,llm:d.llm.map((x,k)=>({...x,k})),fixed:null,t:d,filter:"all"};
+    if(d.error)showErr("AI review error: "+d.error);
+    render();
+  }catch(e){showErr(e.message)}
+  b.disabled=false;b.textContent="Analyze code";
+};
+function render(){
+  const {code,static:st,llm,t}=S,high=llm.filter(i=>i.severity==="high").length;
+  $("stats").innerHTML=[["Static findings",st.length,""],["AI findings",llm.length,""],["High severity",high,high?"color:var(--bad)":""],["Review time",(t.static_time+t.llm_time).toFixed(1)+"s",""]]
+    .map(([a,b,c])=>`<div class="card stat"><span>${a}</span><b style="${c}">${esc(b)}</b></div>`).join("");
+  const mx=Math.max(st.length,llm.length,1);
+  $("bars").innerHTML=[["Static tools",st.length,"var(--bad)"],["AI review",llm.length,"var(--acc)"]]
+    .map(([a,n,c])=>`<div><span>${a}</span><b>${n}</b></div><div class="track"><i style="width:${n/mx*100}%;background:${c}"></i></div>`).join("").replace(/<div class="track">(?!.*<div class="track">)/,'<div class="track" style="margin-bottom:0">');
+  const bad=new Set(llm.map(i=>parseInt(i.line,10)));
+  $("view").innerHTML=code.split("\n").map((l,k)=>`<div class="ln${bad.has(k+1)?" hl":""}" id="ln-${k+1}"><i>${k+1}</i>${esc(l)||" "}</div>`).join("");
+  const c={all:llm.length};["high","medium","low"].forEach(s=>c[s]=llm.filter(i=>i.severity===s).length);
+  $("chips").innerHTML=["all","high","medium","low"].map(f=>`<button class="chip${S.filter===f?" on":""}" data-f="${f}">${f[0].toUpperCase()+f.slice(1)} ${c[f]}</button>`).join("");
+  renderIssues();
+  $("ssum").textContent=`Static analysis (${st.length} findings)`;
+  $("static").innerHTML=st.length?`<table><tr><th>Tool</th><th>Line</th><th>Severity</th><th>Code</th><th>Message</th></tr>${[...st].sort((a,b)=>a.line-b.line).map(s=>`<tr><td>${esc(s.tool)}</td><td>${esc(s.line)}</td><td>${esc(s.severity)}</td><td>${esc(s.code)}</td><td>${esc(s.message)}</td></tr>`).join("")}</table>`:'<p class="cnt">Static tools found no issues.</p>';
+  $("fixed").hidden=true;$("how").hidden=true;$("out").hidden=false;
+  $("out").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function renderIssues(){
+  const lines=S.code.split("\n");
+  const list=S.llm.filter(i=>S.filter==="all"||i.severity===S.filter).sort((a,b)=>(ORDER[a.severity]??3)-(ORDER[b.severity]??3));
+  $("issues").innerHTML=list.length?list.map(i=>{
+    const n=parseInt(i.line,10),orig=lines[n-1]||"",sev=i.severity||"low";
+    return `<article class="iss"><button class="ih" data-k="${i.k}" aria-expanded="false"><span class="pill ${esc(sev)}">${esc(sev[0].toUpperCase()+sev.slice(1))}</span><span class="lb">Line ${esc(i.line)}</span><span class="it">${esc(i.issue)}</span><span class="tag">${esc(i.category)}</span><span class="chev" aria-hidden="true"></span></button>
+    <div class="ib" id="ib${i.k}" hidden><p>${esc(i.explanation)}</p><div class="two"><div><div class="lab">WRONG</div><pre class="w">${esc(orig)}</pre></div><div><div class="lab">CORRECT<button class="cp" data-c="${i.k}">Copy</button></div><pre class="c">${esc(i.fixed_code)}</pre></div></div></div></article>`}).join(""):'<div class="empty">No findings for this filter.</div>';
+}
+function focusLine(n){document.querySelectorAll(".ln.focus").forEach(e=>e.classList.remove("focus"));const el=$("ln-"+n);if(el){el.classList.add("focus");const v=$("view");v.scrollTop=el.offsetTop-v.clientHeight/2}}
+$("chips").onclick=e=>{const b=e.target.closest("[data-f]");if(!b)return;S.filter=b.dataset.f;document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x===b));renderIssues()};
+$("issues").onclick=e=>{
+  const cp=e.target.closest("[data-c]");if(cp){copy(S.llm[+cp.dataset.c].fixed_code||"");return}
+  const b=e.target.closest(".ih");if(!b)return;
+  const box=$("ib"+b.dataset.k),open=box.hidden;box.hidden=!open;b.setAttribute("aria-expanded",open);
+  if(open)focusLine(parseInt(S.llm[+b.dataset.k].line,10));
+};
+$("fix").onclick=async()=>{
+  if(!S.llm.length){showErr("Nothing to fix yet.");return}
+  const b=$("fix");b.disabled=true;b.innerHTML='<span class="spin"></span>Generating';
+  try{const d=await post("/api/fix",{code:S.code,issues:S.llm});
+    if(d.error)showErr(d.error);else{S.fixed=d.fixed;$("fixedcode").textContent=d.fixed;$("fixed").hidden=false}
+  }catch(e){showErr(e.message)}
+  b.disabled=false;b.textContent="Generate fully corrected code";
+};
+$("cpfix").onclick=()=>S.fixed&&copy(S.fixed);
+$("dl").onclick=()=>save("review_report.json",JSON.stringify({static:S.static,llm:S.llm.map(({k,...r})=>r)},null,2),"application/json");
+$("dlfix").onclick=()=>S.fixed&&save("fixed_code.py",S.fixed,"text/x-python");
+</script>
+</body>
+</html>
